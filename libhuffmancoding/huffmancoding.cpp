@@ -1,5 +1,6 @@
 #include "huffmancoding.h"
 #include <algorithm>
+#include <errno.h>
 
 HuffmanCoding::HuffmanCoding() {}
 
@@ -23,7 +24,8 @@ Scheme &HuffmanCoding::GetCode(std::vector<std::pair<char, double> > &probabilit
     std::sort(probabilities.rbegin(), probabilities.rend(), compare());
     std::vector<std::pair<char, double> > probs = probabilities;
     std::vector<std::vector<short>> codes;
-    codes.resize(probabilities.size(), std::vector<short>(probabilities.size() - 2));
+    if(probabilities.size() != 0)
+        codes.resize(probabilities.size(), std::vector<short>(probabilities.size() - 1));
 
     auto result = new Scheme();
     long length = probabilities.size();
@@ -31,14 +33,15 @@ Scheme &HuffmanCoding::GetCode(std::vector<std::pair<char, double> > &probabilit
     GetCode(probs, codes, lengths, length);
     for(int i = 0; i < length; ++i)
     {
-        std::string s = "";
+        result->insert(std::pair<char, std::vector<bool>>(probabilities.at(i).first, std::vector<bool>()));
+        auto it = result->find(probabilities.at(i).first);
         for(int j = 0; j < lengths[i]; ++j)
-            s += (codes[i][j] + 48);
-        result->insert(std::pair<char, std::string>(probabilities.at(i).first, s));
+            it->second.push_back(codes[i][j]);
+
     }
     return *result;
 }
-std::pair<Scheme, std::string> HuffmanCoding::Encode(const std::string input)
+std::pair<Scheme, std::vector<bool> > HuffmanCoding::Encode(const std::string input)
 {
     std::unordered_map<char, unsigned long> counter;
     for(int i = 0; i < input.length(); ++i)
@@ -53,29 +56,58 @@ std::pair<Scheme, std::string> HuffmanCoding::Encode(const std::string input)
             item != counter.end(); ++item)
         probabilities.push_back(std::pair<char, double>(item->first, (double)item->second/(double)input.length()));
     Scheme scheme = GetCode(probabilities);
-    return std::pair<Scheme, std::string>(scheme, Encode(scheme, input));
+    return std::pair<Scheme, std::vector<bool>>(scheme, Encode(scheme, input));
 }
-std::string HuffmanCoding::Encode(const Scheme& scheme, const std::string input)
+std::pair<Scheme, std::vector<bool> > HuffmanCoding::Encode(std::istream &input)
 {
-    std::string output = "";
+    if(input)
+    {
+        std::string content;
+        char c;
+        while(input.get(c))
+            content += c;
+        return Encode(content);
+    }
+    throw(errno);
+}
+std::vector<bool> HuffmanCoding::Encode(const Scheme& scheme, const std::string input)
+{
+    std::vector<bool> output;
     for(int i = 0; i < input.length(); ++i)
     {
         auto it = scheme.find(input[i]);
         if(it != scheme.end())
-            output += it->second;
+            output.insert(output.end(), it->second.begin(), it->second.end());
     }
     return output;
 }
-std::string HuffmanCoding::Decode(const Scheme &scheme, const std::string input)
+std::vector<bool> HuffmanCoding::Encode(const Scheme& scheme, std::istream &input)
+{
+    if(input)
+    {
+        std::string content;
+        char c;
+        while(input.get(c))
+            content += c;
+        return Encode(scheme, content);
+    }
+    throw(errno);
+}
+std::string HuffmanCoding::Decode(const Scheme& scheme, const std::vector<bool> input)
 {
     std::unordered_map<std::string, char> reversed;
     for(auto it = scheme.begin(); it != scheme.end(); ++it)
-        reversed.insert(std::pair<std::string, char>(it->second, it->first));
-    std::string output = "";
-    std::string key = "";
-    for(int i = 0; i < input.length(); ++i)
     {
-        key += input[i];
+        std::string s = "";
+        for(auto jt = it->second.begin(); jt != it->second.end(); ++jt)
+            s += *jt;
+        reversed.insert(std::pair<std::string, char>(s, it->first));
+    }
+    std::string output = "";
+    std::string key  = "";
+    for(auto i = input.begin(); i != input.end(); ++i)
+    {
+        key += *i;
         auto it = reversed.find(key);
         if(it == reversed.end())
             continue;

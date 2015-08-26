@@ -5,8 +5,9 @@
 #include <string>
 #include <utility>
 #include <unordered_map>
+#include <iostream>
 
-typedef std::unordered_map<char, std::string> Scheme ;
+typedef std::unordered_map<char, std::vector<bool>> Scheme ;
 
 class HuffmanCoding
 {
@@ -14,9 +15,11 @@ class HuffmanCoding
         static HuffmanCoding& lib();
         Scheme& GetCode(
                 std::vector<std::pair<char, double>>& probabilities);
-        std::pair<Scheme, std::string> Encode(const std::string input);
-        std::string Encode(const Scheme& scheme, const std::string input);
-        std::string Decode(const Scheme& scheme, const std::string input);
+        std::pair<Scheme, std::vector<bool>> Encode(const std::string input);
+        std::pair<Scheme, std::vector<bool>> Encode(std::istream& input);
+        std::vector<bool> Encode(const Scheme& scheme, const std::string input);
+        std::vector<bool> Encode(const Scheme& scheme, std::istream& input);
+        std::string Decode(const Scheme& scheme, const std::vector<bool> input);
     private:
         HuffmanCoding();
         HuffmanCoding(HuffmanCoding const&) = delete;
