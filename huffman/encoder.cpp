@@ -61,11 +61,39 @@ void WriteSchemeToStream(Scheme& scheme, std::ostream& outputScheme)
         outputScheme << it->first;
         outputScheme << '|';
         for(auto jt = it->second.begin(); jt != it->second.end(); ++jt)
-            outputScheme << (*jt == 0) ? '0' : '1';
+            outputScheme << !(*jt == 0);
         outputScheme << ';';
     }
     outputScheme << "/>";
 }
+void WriteBitsToStream(std::vector<bool> bits, std::ostream& output)
+{
+    unsigned int lastBitsCount = bits.size() % 8;
+    if(lastBitsCount == 0)
+        lastBitsCount = 8;
+    char mask = 0;
+    for(int i = 0; i < lastBitsCount; ++i)
+    {
+        mask >>= 1;
+        mask |= (1 << 7);
+    }
+    output << mask;
+    for(int i = 0; i < bits.size() / 8; ++i)
+    {
+        char c = 0;
+        for(int j = 0; j < 8; ++j)
+             c |= (bits[i * 8 + j] << (7 - j));
+        output << c;
+    }
+    if(lastBitsCount != 8)
+    {
+        char c = 0;
+        for(int i = 0; i < lastBitsCount; ++i)
+            c |= (bits[i +  (bits.size() / 8) * 8] << (7 - i));
+        output << c;
+    }
+}
+
 void Encode(std::istream &input, std::istream &schemeStream, std::ostream &outputFile, std::ostream &outputScheme)
 {
     Scheme* scheme = ReadSchemeFromStream(schemeStream);
@@ -73,18 +101,20 @@ void Encode(std::istream &input, std::istream &schemeStream, std::ostream &outpu
         return;
     std::vector<bool> encodingResult = HuffmanCoding::lib().Encode(*scheme, input);
     WriteSchemeToStream(*scheme, outputScheme);
-    for(auto it = encodingResult.begin(); it != encodingResult.end(); ++it)
-        outputFile << (*it == 0) ? '0' : '1';
+    WriteBitsToStream(encodingResult, outputFile);
+    /*for(auto it = encodingResult.begin(); it != encodingResult.end(); ++it)
+        outputFile << (*it == 0) ? '0' : '1';*/
+
     delete scheme;
 }
 void Encode(std::istream &input, std::ostream &outputFile, std::ostream &outputScheme)
 {
-    std::pair<Scheme, std::vector<bool> > encodingResult = HuffmanCoding::lib().Encode(input);
-    Scheme& scheme = encodingResult.first;
+    std::pair<Scheme*, std::vector<bool> > encodingResult = HuffmanCoding::lib().Encode(input);
+    Scheme* scheme = encodingResult.first;
     std::vector<bool> code = encodingResult.second;
-    WriteSchemeToStream(scheme, outputScheme);
-    for(auto it = code.begin(); it != code.end(); ++it)
-        outputFile << (*it == 0) ? '0' : '1';
+    WriteSchemeToStream(*scheme, outputScheme);
+    WriteBitsToStream(code, outputFile);
+    delete scheme;
 }
 void Decode(std::istream &input, std::istream &schemeStream, std::ostream &outputFile)
 {
@@ -92,16 +122,33 @@ void Decode(std::istream &input, std::istream &schemeStream, std::ostream &outpu
     if(scheme == NULL)
         return;
     std::vector<bool> data;
-    char c;
-    while(input.get(c))
+    char c1, c2,  mask;
+    if(!input.get(mask))
     {
-        if(c != '0' && c != '1')
+        std::cerr << "Invalid encoded file" << std::endl;
+        delete scheme;
+        return;
+    }
+    if(!input.get(c1))
+    {
+        delete scheme;
+        return;
+    }
+    while(input.get(c2))
+    {
+        for(int i = 0; i < 8; ++i)
         {
-            std::cerr << "Invalid encoded file" << std::endl;
-            return;
+            bool c = (c1 >> (7 - i)) & 1;
+            data.push_back(c);
         }
-        data.push_back((c == '0') ? 0 : 1);
+        c1 = c2;
+    }
+    c1 &= mask;
+    for(int i = 0; i < 8 && ((mask >> (7 - i)) & 1); ++i)
+    {
+        bool c = (c1 >> (7 - i)) & 1;
+        data.push_back(c);
     }
     outputFile << HuffmanCoding::lib().Decode(*scheme, data);
+    delete scheme;
 }
-

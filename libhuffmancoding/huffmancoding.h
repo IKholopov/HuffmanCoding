@@ -13,10 +13,10 @@ class HuffmanCoding
 {
     public:
         static HuffmanCoding& lib();
-        Scheme& GetCode(
+        Scheme* GetCode(
                 std::vector<std::pair<char, double>>& probabilities);
-        std::pair<Scheme, std::vector<bool>> Encode(const std::string input);
-        std::pair<Scheme, std::vector<bool>> Encode(std::istream& input);
+        std::pair<Scheme*, std::vector<bool>> Encode(const std::string input);
+        std::pair<Scheme*, std::vector<bool>> Encode(std::istream& input);
         std::vector<bool> Encode(const Scheme& scheme, const std::string input);
         std::vector<bool> Encode(const Scheme& scheme, std::istream& input);
         std::string Decode(const Scheme& scheme, const std::vector<bool> input);

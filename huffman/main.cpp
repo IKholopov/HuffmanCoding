@@ -8,9 +8,6 @@
 
 int main(int argc, char** argv)
 {
-    /*std::pair<Scheme, std::vector<bool>> codes = HuffmanCoding::lib().Encode(std::cin);
-    std::string out = HuffmanCoding::lib().Decode(codes.first, codes.second);
-    std::cout << out;*/
     std::istream& defaultInputStream = std::cin;
     std::istream* inputStream = &defaultInputStream;
     std::istream* schemeStream =  NULL;
@@ -136,14 +133,26 @@ int main(int argc, char** argv)
         else
             Encode(*inputStream, *outputFileStream, *outputSchemeStream);
     }
-    if(inputStream != &defaultInputStream)
+    if(input)
+    {
         ((std::ifstream*)inputStream)->close();
-    if(schemeStream != NULL)
+        delete inputStream;
+    }
+    if(scheme)
+    {
         ((std::ifstream*)schemeStream)->close();
-    if(outputFileStream != &defaultOutputFileStream)
+        delete schemeStream;
+    }
+    if(output)
+    {
         ((std::ofstream*)outputFileStream)->close();
-    if(outputSchemeStream != &defaultOutputSchemeStream)
+        delete outputFileStream;
+    }
+    if(outputScheme)
+    {
         ((std::ofstream*)outputSchemeStream)->close();
+        delete outputSchemeStream;
+    }
     return 0;
 }
 

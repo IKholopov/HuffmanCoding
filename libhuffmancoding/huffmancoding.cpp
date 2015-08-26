@@ -11,7 +11,7 @@ HuffmanCoding& HuffmanCoding::lib()
     return instance;
 }
 
-Scheme &HuffmanCoding::GetCode(std::vector<std::pair<char, double> > &probabilities)
+Scheme* HuffmanCoding::GetCode(std::vector<std::pair<char, double> > &probabilities)
 {
     struct compare
     {
@@ -39,9 +39,9 @@ Scheme &HuffmanCoding::GetCode(std::vector<std::pair<char, double> > &probabilit
             it->second.push_back(codes[i][j]);
 
     }
-    return *result;
+    return result;
 }
-std::pair<Scheme, std::vector<bool> > HuffmanCoding::Encode(const std::string input)
+std::pair<Scheme *, std::vector<bool> > HuffmanCoding::Encode(const std::string input)
 {
     std::unordered_map<char, unsigned long> counter;
     for(int i = 0; i < input.length(); ++i)
@@ -55,10 +55,10 @@ std::pair<Scheme, std::vector<bool> > HuffmanCoding::Encode(const std::string in
     for(std::unordered_map<char, unsigned long>::iterator item = counter.begin();
             item != counter.end(); ++item)
         probabilities.push_back(std::pair<char, double>(item->first, (double)item->second/(double)input.length()));
-    Scheme scheme = GetCode(probabilities);
-    return std::pair<Scheme, std::vector<bool>>(scheme, Encode(scheme, input));
+    Scheme* scheme = GetCode(probabilities);
+    return std::pair<Scheme*, std::vector<bool>>(scheme, Encode(*scheme, input));
 }
-std::pair<Scheme, std::vector<bool> > HuffmanCoding::Encode(std::istream &input)
+std::pair<Scheme *, std::vector<bool> > HuffmanCoding::Encode(std::istream &input)
 {
     if(input)
     {
