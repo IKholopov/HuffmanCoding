@@ -1,15 +1,15 @@
 pkgname=huffman-coding
-pkgver=1.0
+pkgver=1.1
 pkgrel=1
 licence=('GPL')
 makedepends=('cmake' 'gcc')
 arch=('x86_64' 'x86')
-source=(HuffmanCodingSource.tar.gz)
-md5sums=('bd958e01fc0a5f920a4b7fbf11272be5')
+source=(https://github.com/IKholopov/HuffmanCoding/archive/1.01.tar.gz)
+md5sums=('d2dd5c119075a1c06ae41df4ec4ee6ba')
 
 build() {
 	mkdir ./build
-	tar -zxvf HuffmanCodingSource.tar.gz
+	tar -zxvf 1.01.tar.gz && mv HuffmanCoding-1.01/* .
 	cd build
 	cmake -DCMAKE_BUILD_TYPE=Release ..
 	make 
