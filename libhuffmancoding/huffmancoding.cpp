@@ -25,7 +25,7 @@ Scheme* HuffmanCoding::GetCode(std::vector<std::pair<char, double> > &probabilit
     std::vector<std::pair<char, double> > probs = probabilities;
     std::vector<std::vector<short>> codes;
     if(probabilities.size() != 0)
-        codes.resize(probabilities.size(), std::vector<short>(probabilities.size() - 1));
+        codes.resize(probabilities.size(), std::vector<short>(probabilities.size() == 1 ? 1 : probabilities.size() - 1));
 
     auto result = new Scheme();
     long length = probabilities.size();
